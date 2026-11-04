@@ -12,18 +12,32 @@ export interface Chip {
   title: string;
 }
 
+/** 35 → "35 m", 1520 → "1.5 km". */
+export function formatDistance(m: number): string {
+  return m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`;
+}
+
 /**
  * Geofence is ADVISORY (ADR-0004, C6 explicit_non_gates): OUTSIDE_FLAGGED is a
  * flag for AM review, never a block. Amber, with out_of_radius_reason as tooltip.
+ * Labels say "Near CSP" / "Away from CSP" (not INSIDE/OUTSIDE): the result is
+ * where the DC was at check-in time, measured from the CSP pin — not "inside
+ * the shop", and not a live status.
  */
-export function geofenceChip(result: GeofenceResult, outOfRadiusReason?: string | null): Chip {
+export function geofenceChip(
+  result: GeofenceResult,
+  outOfRadiusReason?: string | null,
+  distanceM?: number | null,
+): Chip {
+  const dist = distanceM === undefined || distanceM === null ? null : formatDistance(distanceM);
+  const note = dist ? `${dist} from CSP pin at check-in time` : 'At check-in time';
   if (result === 'INSIDE') {
-    return { label: 'INSIDE', className: 'chip chip-green', title: '' };
+    return { label: dist ? `Near CSP · ${dist}` : 'Near CSP', className: 'chip chip-green', title: note };
   }
   return {
-    label: 'OUTSIDE_FLAGGED',
+    label: dist ? `Away from CSP · ${dist}` : 'Away from CSP',
     className: 'chip chip-amber',
-    title: outOfRadiusReason ?? '',
+    title: outOfRadiusReason ? `${note}. Reason: ${outOfRadiusReason}` : note,
   };
 }
 

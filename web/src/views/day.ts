@@ -40,7 +40,7 @@ export function renderDayView(root: HTMLElement): () => void {
         <thead>
           <tr>
             <th>DC</th><th>Location</th><th>Check-in (IST)</th>
-            <th>Geofence</th><th>Planned</th><th>Sync</th>
+            <th>Check-in area</th><th>Check-out (IST)</th><th>Planned</th><th>Sync</th>
           </tr>
         </thead>
         <tbody id="visits-body"></tbody>
@@ -108,14 +108,18 @@ export function renderDayView(root: HTMLElement): () => void {
       tbody.replaceChildren(
         ...groups.map(({ first: v, repeats }) => {
           const tr = document.createElement('tr');
-          const geo = geofenceChip(v.geofence_result, v.out_of_radius_reason);
+          const geo = geofenceChip(v.geofence_result, v.out_of_radius_reason, v.distance_from_master_m);
           const sync = syncChip(v.sync_state);
           const again = repeats.map((r) => formatIstDateTime(r.checkin.occurred_at).slice(-5)).join(', ');
+          // Latest check-out across the folded repeats; "—" while still at the CSP / not synced.
+          const out = [v, ...repeats].map((r) => r.checked_out_at).filter((t): t is string => !!t).sort().at(-1);
+          const stayed = out ? Math.max(0, Math.round((Date.parse(out) - Date.parse(v.checkin.occurred_at)) / 60000)) : null;
           tr.append(
             td(v.dc_name ?? '—'),
             td(v.location_name ? `${v.location_name} (${v.location_code ?? '—'})` : (v.location_code ?? '—')),
             td(formatIstDateTime(v.checkin.occurred_at) + (again ? ` (again ${again})` : '')),
             tdChip(geo.label, geo.className, geo.title),
+            td(out ? `${formatIstDateTime(out).slice(-5)} (${stayed} min)` : '—'),
             td(plannedLabel(v.planned)),
             tdChip(sync.label, sync.className, sync.title),
           );

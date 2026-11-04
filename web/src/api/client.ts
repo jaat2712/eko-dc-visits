@@ -96,6 +96,9 @@ export interface Visit {
   geofence_result: GeofenceResult;
   out_of_radius_reason?: string | null;
   sync_state: SyncState;
+  /** Derived at read time from visit.checkout ops; null until the DC leaves / checks out. */
+  checked_out_at?: string | null;
+  duration_minutes?: number | null;
 }
 
 /** 200 response of GET /dashboard/visits (C2). */
