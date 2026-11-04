@@ -17,7 +17,7 @@ import type * as LT from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { ApiError, listVisits, type Visit } from '../api/client.ts';
 import { formatIstDateTime, todayIstDate } from '../lib/format.ts';
-import { geofenceChip, syncChip, plannedLabel } from '../lib/chips.ts';
+import { geofenceChip } from '../lib/chips.ts';
 import { groupRepeatVisits } from '../lib/visitGroups.ts';
 
 const POLL_MS = 10_000;
@@ -40,7 +40,7 @@ export function renderDayView(root: HTMLElement): () => void {
         <thead>
           <tr>
             <th>DC</th><th>Location</th><th>Check-in (IST)</th>
-            <th>Check-in area</th><th>Check-out (IST)</th><th>Planned</th><th>Sync</th>
+            <th>Check-in area</th><th>Check-out (IST)</th>
           </tr>
         </thead>
         <tbody id="visits-body"></tbody>
@@ -109,7 +109,6 @@ export function renderDayView(root: HTMLElement): () => void {
         ...groups.map(({ first: v, repeats }) => {
           const tr = document.createElement('tr');
           const geo = geofenceChip(v.geofence_result, v.out_of_radius_reason, v.distance_from_master_m);
-          const sync = syncChip(v.sync_state);
           const again = repeats.map((r) => formatIstDateTime(r.checkin.occurred_at).slice(-5)).join(', ');
           // Latest check-out across the folded repeats; "—" while still at the CSP / not synced.
           const out = [v, ...repeats].map((r) => r.checked_out_at).filter((t): t is string => !!t).sort().at(-1);
@@ -120,8 +119,6 @@ export function renderDayView(root: HTMLElement): () => void {
             td(formatIstDateTime(v.checkin.occurred_at) + (again ? ` (again ${again})` : '')),
             tdChip(geo.label, geo.className, geo.title),
             td(out ? `${formatIstDateTime(out).slice(-5)} (${stayed} min)` : '—'),
-            td(plannedLabel(v.planned)),
-            tdChip(sync.label, sync.className, sync.title),
           );
           return tr;
         }),
