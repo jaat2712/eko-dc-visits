@@ -23,6 +23,10 @@ import { formatIstDateTime, todayIstDate } from '../lib/format.ts';
 import { liveLocationChip } from '../lib/chips.ts';
 
 const POLL_MS = 10_000;
+// The app uploads its track every ~3 min (TrackingService FLUSH_EVERY_TICKS), so
+// the server's 60 s default showed every working phone as STALE. 10 min = a
+// few missed uploads before we flag it.
+const STALE_AFTER_S = 600;
 
 const STATE_COLOR: Record<LiveLocationRow['state'], string> = {
   live: '#1d7a3a',
@@ -219,7 +223,7 @@ export function renderLiveView(root: HTMLElement): () => void {
       inflight = ac;
       if (showLoading) statusEl.textContent = 'Loading…';
       try {
-        const res = await listLiveLocations(undefined, ac.signal);
+        const res = await listLiveLocations(STALE_AFTER_S, ac.signal);
         if (disposed || ac.signal.aborted) return;
         statusEl.textContent = `Last updated ${formatIstDateTime(new Date().toISOString())} IST`;
         renderRows(res.items);

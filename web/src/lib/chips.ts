@@ -83,7 +83,7 @@ export function liveLocationChip(state: LiveLocationState): Chip {
     case 'live':
       return { label: 'LIVE', className: 'chip chip-green', title: '' };
     case 'stale':
-      return { label: 'STALE', className: 'chip chip-amber', title: 'Last fix is older than the freshness threshold' };
+      return { label: 'STALE', className: 'chip chip-amber', title: 'No location update for 10+ minutes' };
     case 'off_duty':
       return { label: 'OFF DUTY', className: 'chip chip-neutral', title: 'Not currently Checked In' };
     case 'no_fix':
