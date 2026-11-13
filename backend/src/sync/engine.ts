@@ -26,6 +26,8 @@ import type {
   Principal,
   StoredAttendanceEvent,
   StoredCheckoutEvent,
+  StoredCspComplaint,
+  CspComplaint,
   StoredTrackChunk,
   StoredVisitPhoto,
   TrackChunk,
@@ -43,6 +45,7 @@ import {
   validateCheckoutEvent,
   validateTrackChunk,
   validateVisitPhoto,
+  validateCspComplaint,
 } from "../validation/schemas.js";
 
 export type Clock = () => Date;
@@ -189,6 +192,21 @@ async function applyNewOp(
     return matched
       ? { op_id: opId, result: "accepted" }
       : { op_id: opId, result: "accepted-flagged", flags: ["HASH_MISMATCH"] };
+  }
+
+  if (opType === "csp.complaint") {
+    if (!validateCspComplaint(payload)) {
+      return quarantine("SCHEMA_INVALID", ajvErrorStrings(validateCspComplaint));
+    }
+    const complaint = payload as CspComplaint;
+    const location = await repos.getLocationById(tenant, complaint.location_id);
+    if (!location) return quarantine("UNKNOWN_REFERENCE", [`unknown location_id ${complaint.location_id}`]);
+    await repos.insertCspComplaintIfAbsent({
+      ...complaint,
+      tenant_id: tenant,
+      timestamps: { ...complaint.timestamps, server_received_at: clock().toISOString() },
+    });
+    return { op_id: opId, result: "accepted" };
   }
 
   if (opType === "visit.checkout") {

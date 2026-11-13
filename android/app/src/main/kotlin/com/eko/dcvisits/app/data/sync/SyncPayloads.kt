@@ -35,6 +35,7 @@ object SyncPayloads {
     const val OP_VISIT_CHECKOUT = "visit.checkout"
     const val OP_VISIT_PHOTO = "visit.photo"
     const val OP_TRACK_CHUNK = "track.chunk"
+    const val OP_CSP_COMPLAINT = "csp.complaint"
 
     /** One GPS reading for a [trackChunkEvent] (contracts track-chunk.schema.json). */
     data class TrackPt(
@@ -135,6 +136,28 @@ object SyncPayloads {
         }
     }
 
+    /** contracts/c1-entities/csp-complaint.schema.json — the CSP's complaint, written by the DC, T1. */
+    fun cspComplaintEvent(
+        id: String,
+        dcUserId: String,
+        deviceId: String,
+        locationId: String,
+        category: String,
+        text: String,
+        fix: Fix?,
+        wallIso: String,
+        monotonicMs: Long,
+    ): JsonObject = buildJsonObject {
+        put("id", id)
+        put("dc_user_id", dcUserId)
+        put("device_id", deviceId)
+        put("location_id", locationId)
+        put("category", category)
+        put("text", text.take(1000))
+        if (fix != null) put("fix", fixObject(fix))
+        put("timestamps", timestamps(wallIso, monotonicMs))
+    }
+
     /** Phone state at chunk flush; shown on the dashboard live board. */
     data class DeviceStatus(val batteryPct: Int?, val charging: Boolean, val powerSave: Boolean)
 
@@ -191,7 +214,7 @@ object SyncPayloads {
     }
 
     fun tierFor(opType: String): Tier = when (opType) {
-        OP_ATTENDANCE_START, OP_ATTENDANCE_END, OP_VISIT_CHECKIN, OP_VISIT_CHECKOUT -> Tier.T1
+        OP_ATTENDANCE_START, OP_ATTENDANCE_END, OP_VISIT_CHECKIN, OP_VISIT_CHECKOUT, OP_CSP_COMPLAINT -> Tier.T1
         OP_VISIT_PHOTO -> Tier.T2
         OP_TRACK_CHUNK -> Tier.T3
         else -> Tier.T1

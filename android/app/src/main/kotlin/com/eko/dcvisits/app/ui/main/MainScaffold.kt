@@ -36,6 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Map
@@ -83,6 +84,7 @@ import com.eko.dcvisits.app.ui.components.LocalScreen
 import com.eko.dcvisits.app.ui.components.glassSurface
 import com.eko.dcvisits.app.ui.components.pressScale
 import com.eko.dcvisits.app.ui.csp.CspDetailsScreen
+import com.eko.dcvisits.app.ui.complaint.ComplaintScreen
 import com.eko.dcvisits.app.ui.logi.LogiScreen
 import com.eko.dcvisits.app.ui.nearestcsp.NearestCspScreen
 import com.eko.dcvisits.app.ui.location.LocationGate
@@ -108,6 +110,7 @@ private enum class Tab(@StringRes val label: Int, val icon: ImageVector, val dcG
     NAVIGATE(R.string.tab_navigate, Icons.Filled.Navigation, dcGated = true),
     VISITS(R.string.tab_visits, Icons.AutoMirrored.Filled.List, dcGated = true),
     LOGI(R.string.tab_logi, Icons.Filled.Route, dcGated = true),
+    COMPLAINT(R.string.tab_complaint, Icons.Filled.Feedback, dcGated = false),
     APPROVALS(R.string.tab_approvals, Icons.Filled.RateReview, dcGated = false),
     PROFILE(R.string.tab_profile, Icons.Filled.Person, dcGated = false),
     // Admin / national head: every DC at a glance (read-only).
@@ -137,7 +140,7 @@ fun MainScaffold(
 
     val role = session?.user?.role ?: "DC"
     val tabs = when (role) {
-        "DC" -> listOf(Tab.HOME, Tab.MY_CSPS, Tab.NAVIGATE, Tab.VISITS, Tab.LOGI, Tab.PROFILE, Tab.INFO)
+        "DC" -> listOf(Tab.HOME, Tab.MY_CSPS, Tab.NAVIGATE, Tab.VISITS, Tab.COMPLAINT, Tab.LOGI, Tab.PROFILE, Tab.INFO)
         "CIRCLE_HEAD" -> listOf(Tab.HOME, Tab.APPROVALS, Tab.PROFILE, Tab.INFO)
         "CORPORATE_ADMIN" -> listOf(Tab.TEAM, Tab.LIVE_MAP, Tab.TEAM_VISITS, Tab.CSPS, Tab.APPROVALS, Tab.PROFILE, Tab.INFO)
         "NATIONAL_HEAD" -> listOf(Tab.TEAM, Tab.LIVE_MAP, Tab.TEAM_VISITS, Tab.CSPS, Tab.PROFILE, Tab.INFO)
@@ -165,12 +168,13 @@ fun MainScaffold(
                 label = "tab-content",
             ) { tab ->
                 when {
-                    tab != Tab.HOME && tab != Tab.INFO && role == "DC" && gated -> GateNotice()
+                    tab != Tab.HOME && tab != Tab.INFO && tab != Tab.COMPLAINT && role == "DC" && gated -> GateNotice()
                     tab == Tab.HOME -> AttendanceScreen(attendanceVm, onNavigate = { dest -> runCatching { Tab.valueOf(dest) }.getOrNull()?.let { selected = it } })
                     tab == Tab.VISITS -> VisitsScreen()
                     tab == Tab.MY_CSPS -> CspDetailsScreen()
                     tab == Tab.NAVIGATE -> NearestCspScreen()
                     tab == Tab.LOGI -> LogiScreen()
+                    tab == Tab.COMPLAINT -> ComplaintScreen()
                     tab == Tab.APPROVALS -> ApprovalsScreen()
                     tab == Tab.TEAM -> TeamScreen()
                     tab == Tab.LIVE_MAP -> LiveMapScreen()

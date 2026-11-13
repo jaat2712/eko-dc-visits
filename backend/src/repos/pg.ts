@@ -24,6 +24,7 @@ import type {
   LocationNode,
   StoredAttendanceEvent,
   StoredCheckoutEvent,
+  StoredCspComplaint,
   StoredTrackChunk,
   StoredVisitPhoto,
   TrackPoint,
@@ -731,6 +732,45 @@ export class PgRepos implements Repos {
         v.sync_state, istDateOf(v.occurred_at),
       ],
     );
+  }
+  async insertCspComplaintIfAbsent(c: StoredCspComplaint): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO csp_complaints (id, tenant_id, dc_user_id, device_id, location_id, category, text, fix,
+                                   device_wall_time, monotonic_ms, server_received_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+       ON CONFLICT (id) DO NOTHING`,
+      [
+        c.id, c.tenant_id, c.dc_user_id, c.device_id, c.location_id, c.category, c.text,
+        c.fix ? JSON.stringify(c.fix) : null,
+        c.timestamps.device_wall_time, c.timestamps.monotonic_ms ?? null, c.timestamps.server_received_at,
+      ],
+    );
+  }
+  async listCspComplaints(tenantId: TenantId, dcIds: "ALL" | ReadonlySet<string>, fromIso: string, toIso: string): Promise<StoredCspComplaint[]> {
+    const values: unknown[] = [tenantId, fromIso, toIso];
+    let sql = `SELECT * FROM csp_complaints WHERE tenant_id = $1 AND device_wall_time >= $2 AND device_wall_time < $3`;
+    if (dcIds !== "ALL") {
+      if (dcIds.size === 0) return [];
+      values.push([...dcIds]);
+      sql += ` AND dc_user_id = ANY($${values.length}::uuid[])`;
+    }
+    sql += ` ORDER BY device_wall_time DESC, id`;
+    const { rows } = await this.pool.query(sql, values);
+    return (rows as Row[]).map((r) => ({
+      id: r.id as string,
+      tenant_id: r.tenant_id as string,
+      dc_user_id: r.dc_user_id as string,
+      device_id: r.device_id as string,
+      location_id: r.location_id as string,
+      category: r.category as StoredCspComplaint["category"],
+      text: r.text as string,
+      ...(r.fix ? { fix: r.fix as StoredCspComplaint["fix"] } : {}),
+      timestamps: {
+        device_wall_time: (r.device_wall_time as Date).toISOString(),
+        monotonic_ms: r.monotonic_ms === null ? undefined : Number(r.monotonic_ms),
+        server_received_at: (r.server_received_at as Date).toISOString(),
+      } as StoredCspComplaint["timestamps"],
+    }));
   }
   async insertVisitPhotoIfAbsent(p: StoredVisitPhoto): Promise<void> {
     await this.pool.query(

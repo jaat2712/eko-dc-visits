@@ -38,6 +38,7 @@ export const IMPLEMENTED_ROUTES: ReadonlyArray<{ method: string; path: string }>
   { method: "get", path: "/dashboard/csps" },
   { method: "get", path: "/dashboard/csp-locations" },
   { method: "get", path: "/dashboard/live-locations" },
+  { method: "get", path: "/dashboard/complaints" },
   { method: "get", path: "/dashboard/route-history" },
   { method: "get", path: "/dc/csp-details" },
   { method: "get", path: "/dc/nearest-csp" },
@@ -1239,6 +1240,43 @@ export function buildServer(deps: ServerDeps): FastifyInstance {
           };
         });
         return reply.code(200).send({ items });
+      });
+
+      // ---- dashboard CSP complaints (written by DCs at the shop, app 0.20.0+) --
+      // IST date range, newest first, scoped like every other dashboard read (C6).
+      api.get("/dashboard/complaints", { preHandler: requireAuth }, async (req: AuthedRequest, reply) => {
+        const principal = req.principal!;
+        const q = req.query as { from?: string; to?: string };
+        const to = q.to && DATE_PATTERN.test(q.to) ? q.to : istDateOf(clock());
+        const from = q.from && DATE_PATTERN.test(q.from) ? q.from : to;
+        if (from > to) return problem(reply, 400, "Bad Request", "from must be on or before to");
+        const scope = await resolveScope(repos, principal, clock());
+        // IST midnight-to-midnight, inclusive of `to`.
+        const fromIso = new Date(`${from}T00:00:00+05:30`).toISOString();
+        const toIso = new Date(new Date(`${to}T00:00:00+05:30`).getTime() + 86_400_000).toISOString();
+        const complaints = await repos.listCspComplaints(scope.tenant_id, scope.dc_user_ids, fromIso, toIso);
+        const [locs, dcs] = await Promise.all([
+          repos.listLocationsByIds(scope.tenant_id, [...new Set(complaints.map((c) => c.location_id))]),
+          repos.listUsersByIds(scope.tenant_id, [...new Set(complaints.map((c) => c.dc_user_id))]),
+        ]);
+        const locById = new Map(locs.map((l) => [l.id, l]));
+        const dcById = new Map(dcs.map((u) => [u.id, u]));
+        const items = complaints.map((c) => {
+          const loc = locById.get(c.location_id);
+          return {
+            id: c.id,
+            created_at: c.timestamps.device_wall_time,
+            dc_user_id: c.dc_user_id,
+            dc_name: dcById.get(c.dc_user_id)?.name ?? "",
+            csp_location_id: c.location_id,
+            csp_code: loc?.code ?? "",
+            csp_name: loc ? cspName(loc) : null,
+            district: loc?.district ?? null,
+            category: c.category,
+            text: c.text,
+          };
+        });
+        return reply.code(200).send({ from, to, items });
       });
 
       // ---- dashboard route history (bounded, one DC, one IST date) -----------

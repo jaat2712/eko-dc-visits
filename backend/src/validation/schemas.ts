@@ -21,6 +21,7 @@ import circleSchema from "../../../contracts/c1-entities/circle.schema.json" wit
 import cspAssignmentSchema from "../../../contracts/c1-entities/csp-assignment.schema.json" with { type: "json" };
 import trackChunkSchema from "../../../contracts/c1-entities/track-chunk.schema.json" with { type: "json" };
 import visitPhotoSchema from "../../../contracts/c1-entities/visit-photo.schema.json" with { type: "json" };
+import cspComplaintSchema from "../../../contracts/c1-entities/csp-complaint.schema.json" with { type: "json" };
 import cspChangeRequestSchema from "../../../contracts/c1-entities/csp-change-request.schema.json" with { type: "json" };
 
 // NodeNext/CJS interop: ajv-formats ships `module.exports.default = fn`.
@@ -55,6 +56,7 @@ for (const schema of [
   trackChunkSchema,
   visitPhotoSchema,
   cspChangeRequestSchema,
+  cspComplaintSchema,
 ]) {
   ajv.addSchema(schema as Record<string, unknown>);
 }
@@ -72,6 +74,7 @@ export const validateCheckoutEvent = getValidator("checkout-event.schema.json");
 export const validateAttendanceEvent = getValidator("attendance-event.schema.json");
 export const validateTrackChunk = getValidator("track-chunk.schema.json");
 export const validateVisitPhoto = getValidator("visit-photo.schema.json");
+export const validateCspComplaint = getValidator("csp-complaint.schema.json");
 export const validateLocation = getValidator("location.schema.json");
 export const validateUser = getValidator("user-device.schema.json#/$defs/user");
 export const validateDevice = getValidator("user-device.schema.json#/$defs/device");

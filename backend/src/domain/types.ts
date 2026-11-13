@@ -378,7 +378,25 @@ export type SyncOpType =
   | "visit.photo"
   | "attendance.start"
   | "attendance.end"
-  | "track.chunk";
+  | "track.chunk"
+  | "csp.complaint";
+
+/** c1-entities/csp-complaint.schema.json — written by the DC at the CSP (app 0.20.0+). */
+export type ComplaintCategory = "DEVICE" | "PAYMENT" | "COMMISSION" | "SUPPORT" | "TRAINING" | "OTHER";
+export interface CspComplaint {
+  id: string;
+  dc_user_id: string;
+  device_id: string;
+  location_id: string;
+  category: ComplaintCategory;
+  text: string;
+  fix?: GeoPoint;
+  timestamps: EvidenceTimestamps;
+}
+export interface StoredCspComplaint extends CspComplaint {
+  tenant_id: TenantId;
+  timestamps: EvidenceTimestamps & { server_received_at: string };
+}
 
 /** C3 §2 batch envelope (subset typing; ajv on op payloads is the gate). */
 export interface SyncOp {

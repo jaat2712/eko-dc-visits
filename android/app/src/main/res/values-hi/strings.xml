@@ -385,4 +385,22 @@
     <string name="nearby_alert_title_many">📍 1 km के अंदर %1$d CSP</string>
     <string name="nearby_alert_switch">🔔 1 km पर अलर्ट दें</string>
     <string name="nearby_alert_switch_hint">ऐप बंद होने पर भी चलेगा। कभी भी बंद करें।</string>
+    <string name="tab_complaint">शिकायत</string>
+    <string name="complaint_title">CSP की शिकायत</string>
+    <string name="complaint_hint">CSP जो भी शिकायत करे, यहाँ लिखें। Eko टीम इसे डैशबोर्ड पर देखेगी। बिना इंटरनेट भी चलेगा।</string>
+    <string name="complaint_pick_csp">1. CSP चुनें</string>
+    <string name="complaint_search">कोड या नाम खोजें</string>
+    <string name="complaint_pick_type">2. शिकायत किस बारे में है?</string>
+    <string name="complaint_write">3. शिकायत लिखें</string>
+    <string name="complaint_text_label">CSP ने क्या कहा?</string>
+    <string name="complaint_send">शिकायत भेजें</string>
+    <string name="complaint_sent">शिकायत सेव हो गई। इंटरनेट आते ही Eko को चली जाएगी।</string>
+    <string name="complaint_no_csps">अभी कोई CSP नहीं। एक बार इंटरनेट के साथ My CSPs खोलें।</string>
+    <string name="complaint_change">बदलें</string>
+    <string name="complaint_type_device">डिवाइस / मशीन</string>
+    <string name="complaint_type_payment">पेमेंट / सेटलमेंट</string>
+    <string name="complaint_type_commission">कमीशन / चार्ज</string>
+    <string name="complaint_type_support">Eko सपोर्ट</string>
+    <string name="complaint_type_training">ट्रेनिंग</string>
+    <string name="complaint_type_other">अन्य</string>
 </resources>

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.eko-dc-visits/c1/csp-complaint.schema.json",
+  "title": "CspComplaint (append-only; sync op csp.complaint, tier T1)",
+  "description": "A complaint the CSP tells the DC at the shop; the DC writes it in the app (0.20.0+). Read by the Eko team on the dashboard Complaints tab.",
+  "type": "object",
+  "required": ["id", "dc_user_id", "device_id", "location_id", "category", "text", "timestamps"],
+  "properties": {
+    "id": {
+      "$ref": "common.schema.json#/$defs/uuid",
+      "description": "Client UUIDv7. Idempotency key: resends are duplicates, never conflicts."
+    },
+    "dc_user_id": { "$ref": "common.schema.json#/$defs/uuid" },
+    "device_id": { "$ref": "common.schema.json#/$defs/uuid" },
+    "location_id": { "$ref": "common.schema.json#/$defs/uuid", "description": "The CSP the complaint is about." },
+    "category": {
+      "type": "string",
+      "enum": ["DEVICE", "PAYMENT", "COMMISSION", "SUPPORT", "TRAINING", "OTHER"],
+      "description": "DEVICE = machine/device problem, PAYMENT = settlement/money stuck, COMMISSION = commission/charges, SUPPORT = Eko helpline/RM not responding, TRAINING = needs training, OTHER."
+    },
+    "text": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "fix": {
+      "$ref": "common.schema.json#/$defs/geoPoint",
+      "description": "Where the DC was when writing it. Logged, never gated (ADR-0004)."
+    },
+    "timestamps": { "$ref": "common.schema.json#/$defs/evidenceTimestamps" }
+  },
+  "additionalProperties": false
+}

@@ -800,6 +800,45 @@ paths:
                         lng: { type: number }
                         accuracy_m: { type: [number, 'null'] }
                         captured_at: { type: string, format: date-time, description: Device wall time of the freshest fix (absent when state is no_fix) }
+  /dashboard/complaints:
+    get:
+      tags: [dashboard]
+      operationId: listCspComplaints
+      summary: >
+        CSP complaints the DCs wrote in the app at the shop (sync op csp.complaint,
+        app 0.20.0+), newest first, scoped to the caller (C6). IST calendar dates,
+        both inclusive; default today.
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Complaints in the range
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [from, to, items]
+                properties:
+                  from: { type: string, format: date }
+                  to: { type: string, format: date }
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, created_at, dc_user_id, dc_name, csp_location_id, csp_code, category, text]
+                      properties:
+                        id: { type: string, format: uuid }
+                        created_at: { type: string, format: date-time, description: Device wall time when the DC wrote it }
+                        dc_user_id: { type: string, format: uuid }
+                        dc_name: { type: string }
+                        csp_location_id: { type: string, format: uuid }
+                        csp_code: { type: string }
+                        csp_name: { type: [string, 'null'] }
+                        district: { type: [string, 'null'] }
+                        category: { type: string, enum: [DEVICE, PAYMENT, COMMISSION, SUPPORT, TRAINING, OTHER] }
+                        text: { type: string }
   /dashboard/route-history:
     get:
       tags: [tracking, dashboard]
@@ -935,7 +974,7 @@ components:
             properties:
               op_id: { type: string, format: uuid }
               seq: { type: integer, minimum: 0 }
-              type: { type: string, enum: [visit.checkin, visit.checkout, visit.photo, attendance.start, attendance.end, track.chunk] }
+              type: { type: string, enum: [visit.checkin, visit.checkout, visit.photo, attendance.start, attendance.end, track.chunk, csp.complaint] }
               payload: { $ref: '#/components/schemas/CheckInEvent' }
         signature: { type: string }
     Visit:

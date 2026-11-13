@@ -12,6 +12,7 @@ import type {
   LocationNode,
   StoredAttendanceEvent,
   StoredCheckoutEvent,
+  StoredCspComplaint,
   StoredTrackChunk,
   StoredVisitPhoto,
   TrackPoint,
@@ -173,6 +174,10 @@ export interface Repos {
 
   // visit checkout (v0.10.0; append-only; T1). Linked by visit_id, never ordered.
   insertCheckoutEventIfAbsent(e: StoredCheckoutEvent): Promise<void>;
+  /** CSP complaints (migration 013): append-only, idempotent by id. */
+  insertCspComplaintIfAbsent(c: StoredCspComplaint): Promise<void>;
+  /** Newest first; device wall time in [fromIso, toIso). */
+  listCspComplaints(tenantId: TenantId, dcIds: "ALL" | ReadonlySet<string>, fromIso: string, toIso: string): Promise<StoredCspComplaint[]>;
   /** Earliest checkout device_wall_time per visit id — deterministic regardless of arrival order. */
   checkoutTimesForVisits(tenantId: TenantId, visitIds: string[]): Promise<Map<string, string>>;
 

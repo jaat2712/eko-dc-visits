@@ -12,6 +12,7 @@ import type {
   LocationNode,
   StoredAttendanceEvent,
   StoredCheckoutEvent,
+  StoredCspComplaint,
   StoredTrackChunk,
   StoredVisitPhoto,
   TrackPoint,
@@ -54,6 +55,7 @@ export class MemoryRepos implements Repos {
   private liveLocations = new Map<string, DcLiveLocation>(); // key tenant:dc
   private visitPhotos = new Map<string, StoredVisitPhoto>();
   private checkoutEvents = new Map<string, StoredCheckoutEvent>();
+  private cspComplaints = new Map<string, StoredCspComplaint>();
   private cspChangeRequests = new Map<string, CspChangeRequest>();
   private attendanceDays = new Map<string, AttendanceDay>(); // key tenant:dc:istDate
   private visits = new Map<string, Visit>();
@@ -405,6 +407,20 @@ export class MemoryRepos implements Repos {
     return out;
   }
 
+  async insertCspComplaintIfAbsent(c: StoredCspComplaint): Promise<void> {
+    const k = this.key(c.tenant_id, c.id);
+    if (!this.cspComplaints.has(k)) this.cspComplaints.set(k, c);
+  }
+  async listCspComplaints(tenantId: TenantId, dcIds: "ALL" | ReadonlySet<string>, fromIso: string, toIso: string): Promise<StoredCspComplaint[]> {
+    const from = new Date(fromIso).getTime();
+    const to = new Date(toIso).getTime();
+    return [...this.cspComplaints.values()]
+      .filter((c) => {
+        const t = new Date(c.timestamps.device_wall_time).getTime();
+        return c.tenant_id === tenantId && t >= from && t < to && (dcIds === "ALL" || dcIds.has(c.dc_user_id));
+      })
+      .sort((a, b) => b.timestamps.device_wall_time.localeCompare(a.timestamps.device_wall_time) || a.id.localeCompare(b.id));
+  }
   async insertCheckoutEventIfAbsent(e: StoredCheckoutEvent): Promise<void> {
     const k = this.key(e.tenant_id, e.id);
     if (!this.checkoutEvents.has(k)) this.checkoutEvents.set(k, e);

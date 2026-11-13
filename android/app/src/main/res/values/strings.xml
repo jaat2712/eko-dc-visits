@@ -385,4 +385,22 @@
     <string name="nearby_alert_title_many">📍 %1$d CSPs within 1 km</string>
     <string name="nearby_alert_switch">🔔 Alert me within 1 km</string>
     <string name="nearby_alert_switch_hint">Works even when the app is closed. Turn off any time.</string>
+    <string name="tab_complaint">Complaint</string>
+    <string name="complaint_title">CSP complaint</string>
+    <string name="complaint_hint">Whatever the CSP complains about, write it here. The Eko team sees it on the dashboard. Works offline too.</string>
+    <string name="complaint_pick_csp">1. Choose the CSP</string>
+    <string name="complaint_search">Search code or name</string>
+    <string name="complaint_pick_type">2. What is it about?</string>
+    <string name="complaint_write">3. Write the complaint</string>
+    <string name="complaint_text_label">What did the CSP say?</string>
+    <string name="complaint_send">Send complaint</string>
+    <string name="complaint_sent">Complaint saved. It goes to Eko as soon as there is internet.</string>
+    <string name="complaint_no_csps">No CSPs yet. Open My CSPs once with internet.</string>
+    <string name="complaint_change">Change</string>
+    <string name="complaint_type_device">Device / machine</string>
+    <string name="complaint_type_payment">Payment / settlement</string>
+    <string name="complaint_type_commission">Commission / charges</string>
+    <string name="complaint_type_support">Eko support</string>
+    <string name="complaint_type_training">Training</string>
+    <string name="complaint_type_other">Other</string>
 </resources>

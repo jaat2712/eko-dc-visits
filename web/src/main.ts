@@ -19,6 +19,7 @@ import { renderOverviewView } from './views/overview.ts';
 import { renderCspDetailsView } from './views/csp-details.ts';
 import { renderApprovalsView } from './views/approvals.ts';
 import { renderAllCspsView } from './views/all-csps.ts';
+import { renderComplaintsView } from './views/complaints.ts';
 import { isDayStarted } from './lib/gate.ts';
 import ekoLogo from './assets/eko-logo.jpeg';
 
@@ -32,7 +33,8 @@ type Route =
   | '#/my-csps'
   | '#/approvals'
   | '#/all-csps'
-  | '#/live';
+  | '#/live'
+  | '#/complaints';
 
 const app = document.querySelector<HTMLElement>('#app')!;
 let teardown: (() => void) | null = null;
@@ -47,15 +49,16 @@ function tabsFor(role: Role): Array<{ hash: Route; label: string }> {
   const approvals = { hash: '#/approvals' as const, label: 'Approvals' };
   const live = { hash: '#/live' as const, label: 'Live Tracking' };
   const allCsps = { hash: '#/all-csps' as const, label: 'All CSPs' };
+  const complaints = { hash: '#/complaints' as const, label: 'Complaints' };
   switch (role) {
     case 'HR_ADMIN':
       return [attendance]; // C6: attendance-only visibility
     case 'CORPORATE_ADMIN':
-      return [overview, visits, live, attendance, allCsps, csps, approvals, scorecard];
+      return [overview, visits, live, attendance, allCsps, csps, approvals, complaints, scorecard];
     case 'NATIONAL_HEAD':
-      return [overview, visits, live, attendance, allCsps, scorecard];
+      return [overview, visits, live, attendance, allCsps, complaints, scorecard];
     case 'CIRCLE_HEAD':
-      return [attendance, visits, live, allCsps, csps, approvals, scorecard];
+      return [attendance, visits, live, allCsps, csps, approvals, complaints, scorecard];
     default:
       // Spec (DC): Attendance FIRST; everything else locked until day start.
       return [attendance, visits, myCsps, scorecard];
@@ -135,6 +138,8 @@ function route(): void {
     teardown = renderApprovalsView(view);
   } else if (active === '#/all-csps') {
     teardown = renderAllCspsView(view);
+  } else if (active === '#/complaints') {
+    teardown = renderComplaintsView(view);
   } else if (active === '#/live') {
     teardown = renderLiveView(view);
   } else {

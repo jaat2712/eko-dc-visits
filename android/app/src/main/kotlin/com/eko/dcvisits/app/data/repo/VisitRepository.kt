@@ -88,6 +88,25 @@ class VisitRepository(
         return opId
     }
 
+    /** The CSP's complaint, written by the DC at the shop. Queued offline like a visit; never blocks. */
+    suspend fun submitComplaint(csp: CspCacheEntity, category: String, text: String, fix: Fix?): String {
+        val s = session.current() ?: error("Not signed in")
+        val payload = SyncPayloads.cspComplaintEvent(
+            id = Uuidv7.next(),
+            dcUserId = s.user.id,
+            deviceId = s.deviceId,
+            locationId = csp.cspLocationId,
+            category = category,
+            text = text.trim(),
+            fix = fix,
+            wallIso = Ist.nowIso(),
+            monotonicMs = SystemClock.elapsedRealtime(),
+        )
+        val opId = outbox.enqueue(SyncPayloads.OP_CSP_COMPLAINT, payload, label = "Complaint · ${csp.code}")
+        SyncWorker.kick(appContext)
+        return opId
+    }
+
     /** GET /dashboard/visits?date=today — server-scoped to this DC. Null on failure. */
     suspend fun todayVisits(): List<VisitDto>? {
         val s = session.current() ?: return null

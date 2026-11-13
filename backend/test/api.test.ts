@@ -1130,3 +1130,60 @@ test("OTP verify locks a number after 5 wrong codes", async () => {
   // Even the right code is refused while locked.
   assert.equal((await verify(DEV_OTP)).statusCode, 429);
 });
+
+test("csp.complaint: DC writes a CSP complaint, dashboard lists it with DC + CSP; bad payload quarantines", async () => {
+  const { app } = await makeApp();
+  const asha = await login(app, PHONES.asha);
+  const complaintId = uuid();
+  const batch = (payload: object): object => ({
+    batch_id: uuid(),
+    device_id: asha.device_id,
+    seq_from: 1,
+    seq_to: 1,
+    client_time: NOW.toISOString(),
+    app_version: "0.20.0-test",
+    contract_version: "0.7.0",
+    ops: [{ op_id: uuid(), seq: 1, type: "csp.complaint", payload }],
+  });
+  const good = {
+    id: complaintId,
+    dc_user_id: asha.user_id,
+    device_id: asha.device_id,
+    location_id: CSP_KISHANGANJ,
+    category: "PAYMENT",
+    text: "Settlement 3 din se nahi aaya",
+    fix: { lat: 26.1, lng: 87.9, accuracy_m: 12 },
+    timestamps: { device_wall_time: NOW.toISOString(), monotonic_ms: 9 },
+  };
+  const sent = await app.inject({
+    method: "POST",
+    url: "/api/v1/sync/batches",
+    headers: { authorization: `Bearer ${asha.token}` },
+    payload: batch(good),
+  });
+  assert.equal((sent.json() as { results: Array<{ result: string }> }).results[0]!.result, "accepted");
+
+  const bad = await app.inject({
+    method: "POST",
+    url: "/api/v1/sync/batches",
+    headers: { authorization: `Bearer ${asha.token}` },
+    payload: batch({ ...good, id: uuid(), category: "NOPE" }),
+  });
+  assert.equal((bad.json() as { results: Array<{ result: string }> }).results[0]!.result, "quarantined");
+
+  const admin = await login(app, PHONES.admin);
+  const today = new Date(NOW.getTime() + 5.5 * 3600_000).toISOString().slice(0, 10);
+  const list = await app.inject({
+    method: "GET",
+    url: `/api/v1/dashboard/complaints?from=${today}&to=${today}`,
+    headers: { authorization: `Bearer ${admin.token}` },
+  });
+  assert.equal(list.statusCode, 200);
+  const items = (list.json() as { items: Array<Record<string, unknown>> }).items;
+  assert.equal(items.length, 1);
+  assert.equal(items[0]!.id, complaintId);
+  assert.equal(items[0]!.dc_name, "Asha Kumari");
+  assert.equal(items[0]!.category, "PAYMENT");
+  assert.equal(items[0]!.text, "Settlement 3 din se nahi aaya");
+  assert.ok(String(items[0]!.csp_code).length > 0);
+});

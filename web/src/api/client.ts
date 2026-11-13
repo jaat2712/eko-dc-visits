@@ -711,6 +711,36 @@ export async function listLiveLocations(staleAfterS?: number, signal?: AbortSign
   })) as LiveLocationsResponse;
 }
 
+/** C2 GET /dashboard/complaints. CSP complaints the DCs wrote in the app (0.20.0+), newest first, server-scoped (C6). */
+export type ComplaintCategory = 'DEVICE' | 'PAYMENT' | 'COMMISSION' | 'SUPPORT' | 'TRAINING' | 'OTHER';
+export interface ComplaintRow {
+  id: string;
+  created_at: string;
+  dc_user_id: string;
+  dc_name: string;
+  csp_location_id: string;
+  csp_code: string;
+  csp_name: string | null;
+  district: string | null;
+  category: ComplaintCategory;
+  text: string;
+}
+export interface ComplaintsResponse {
+  from: string;
+  to: string;
+  items: ComplaintRow[];
+}
+
+/** GET /dashboard/complaints?from=&to= (IST dates, both inclusive). */
+export async function listComplaints(from: string, to: string, signal?: AbortSignal): Promise<ComplaintsResponse> {
+  return (await request({
+    method: 'GET',
+    path: `/dashboard/complaints?${new URLSearchParams({ from, to }).toString()}`,
+    auth: true,
+    signal,
+  })) as ComplaintsResponse;
+}
+
 /** C2 GET /dashboard/csps (v0.13.0). Admin "All CSPs" in calling-sheet order; CSP operators are anonymous, the DC is a named official. */
 export interface DashboardCspRow {
   csp_location_id: string;
