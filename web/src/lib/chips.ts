@@ -74,6 +74,27 @@ export function attendanceChip(status: AttendanceStatus): Chip {
 }
 
 /**
+ * Phone battery on the live board (app 0.20.0+). Battery saver or ≤ 15% is
+ * amber: that's when Android stops the tracker and the day's KM comes out short.
+ * null = older app that doesn't report it.
+ */
+export function batteryChip(
+  pct: number | null | undefined,
+  charging: boolean | null | undefined,
+  powerSave: boolean | null | undefined,
+): Chip | null {
+  if (pct === null || pct === undefined) return null;
+  const label = `${pct}%` + (charging ? ' · Charging' : '') + (powerSave ? ' · Saver ON' : '');
+  if (powerSave) {
+    return { label, className: 'chip chip-amber', title: 'Battery saver is on - the phone may stop location, KM can come out short' };
+  }
+  if (pct <= 15 && !charging) {
+    return { label, className: 'chip chip-amber', title: 'Low battery - the phone may switch off or stop location soon' };
+  }
+  return { label, className: 'chip chip-neutral', title: '' };
+}
+
+/**
  * Live-tracking map chips (C2 /dashboard/live-locations, v0.12.0).
  * live = green (fresh fix, on duty); stale = amber (on duty, fix older than
  * the threshold); off_duty / no_fix are neutral — nothing to flag, just status.

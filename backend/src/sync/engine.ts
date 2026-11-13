@@ -161,6 +161,9 @@ async function applyNewOp(
         accuracy_m: newest.accuracy_m ?? null,
         captured_at: newest.t,
         server_received_at: stored.timestamps.server_received_at,
+        battery_pct: chunk.device_status?.battery_pct ?? null,
+        charging: chunk.device_status?.charging ?? null,
+        power_save: chunk.device_status?.power_save ?? null,
       });
     }
     return { op_id: opId, result: "accepted" };

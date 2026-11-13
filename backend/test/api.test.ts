@@ -784,7 +784,12 @@ const CSP_SONPUR_DIARA = "018f5a00-0000-7000-8000-000000000108"; // 25.2810, 85.
 const CSP_RAMPUR_KHAJURIA = "018f5a00-0000-7000-8000-000000000109"; // 25.2688, 85.8455
 const ALL_NANDPUR_CSPS = [CSP_KISHANGANJ_CHOWK, CSP_MAHUA_TOLA, CSP_BANIYA_GHAT, CSP_SONPUR_DIARA, CSP_RAMPUR_KHAJURIA];
 
-function trackChunkBatch(dcUserId: string, deviceId: string, points: Array<{ lat: number; lng: number; t: string }>): object {
+function trackChunkBatch(
+  dcUserId: string,
+  deviceId: string,
+  points: Array<{ lat: number; lng: number; t: string }>,
+  deviceStatus?: object,
+): object {
   return {
     batch_id: uuid(),
     device_id: deviceId,
@@ -804,6 +809,7 @@ function trackChunkBatch(dcUserId: string, deviceId: string, points: Array<{ lat
           device_id: deviceId,
           points,
           timestamps: { device_wall_time: NOW.toISOString(), monotonic_ms: 7 },
+          ...(deviceStatus ? { device_status: deviceStatus } : {}),
         },
       },
     ],
@@ -951,15 +957,27 @@ test("GET /dashboard/live-locations: no_fix / stale / live / off_duty states, sc
     method: "POST",
     url: "/api/v1/sync/batches",
     headers: { authorization: `Bearer ${asha.token}` },
-    payload: trackChunkBatch(asha.user_id, asha.device_id, [{ lat: 25.361, lng: 85.76, t: SAFE_NOW.toISOString() }]),
+    payload: trackChunkBatch(asha.user_id, asha.device_id, [{ lat: 25.361, lng: 85.76, t: SAFE_NOW.toISOString() }], {
+      battery_pct: 14,
+      charging: false,
+      power_save: true,
+    }),
   });
   const liveView = await app.inject({
     method: "GET",
     url: "/api/v1/dashboard/live-locations",
     headers: { authorization: `Bearer ${admin.token}` },
   });
-  const ashaLive = (liveView.json() as { items: LiveRow[] }).items.find((r) => r.dc_user_id === asha.user_id)!;
+  const ashaLive = (liveView.json() as { items: Array<LiveRow & Record<string, unknown>> }).items.find(
+    (r) => r.dc_user_id === asha.user_id,
+  )!;
   assert.equal(ashaLive.state, "live");
+  // Phone state from the chunk rides along to the live board (app 0.20.0+).
+  assert.equal(ashaLive.battery_pct, 14);
+  assert.equal(ashaLive.charging, false);
+  assert.equal(ashaLive.power_save, true);
+  // Chunks from older apps have no device_status: still accepted, battery fields null.
+  assert.equal((staleRows.find((r) => r.dc_user_id === asha.user_id) as Record<string, unknown>).battery_pct, null);
 
   // Ending the day flips her to off_duty even though the last fix is still on file.
   await app.inject({

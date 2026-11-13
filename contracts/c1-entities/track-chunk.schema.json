@@ -25,7 +25,17 @@
         "additionalProperties": false
       }
     },
-    "timestamps": { "$ref": "common.schema.json#/$defs/evidenceTimestamps" }
+    "timestamps": { "$ref": "common.schema.json#/$defs/evidenceTimestamps" },
+    "device_status": {
+      "type": "object",
+      "description": "Phone state when the chunk was flushed (app 0.20.0+). Optional; shown on the live map so a short KM day can be explained (low battery, battery saver).",
+      "properties": {
+        "battery_pct": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "charging": { "type": "boolean" },
+        "power_save": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
   },
   "additionalProperties": false,
   "description": "Raw duty-session GPS points from the adaptive tracker (Start→End Day only, DPDP). Stored append-only; daily km is DERIVED at read time from all points sorted by t (order-independent, preserving C3 §3 convergence) using distance algorithm track_straightline_v0 — PROVISIONAL, not for reimbursement (C7 distance rules; OSRM map-matching + dispute workflow are the M2 financial layer). Wire compaction (delta encoding) is an M2 optimization."

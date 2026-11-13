@@ -189,6 +189,14 @@ export interface TrackChunk {
   device_id: string;
   points: TrackPoint[];
   timestamps: EvidenceTimestamps;
+  device_status?: DeviceStatus;
+}
+
+/** Phone state at chunk flush (app 0.20.0+); all fields optional. */
+export interface DeviceStatus {
+  battery_pct?: number;
+  charging?: boolean;
+  power_save?: boolean;
 }
 
 export interface StoredTrackChunk extends TrackChunk {
@@ -210,6 +218,9 @@ export interface DcLiveLocation {
   accuracy_m: number | null;
   captured_at: string; // device wall time of the fix
   server_received_at: string;
+  battery_pct: number | null;
+  charging: boolean | null;
+  power_save: boolean | null;
 }
 
 /** c1-entities/visit-photo.schema.json — append-only evidence (v0.9.0). */

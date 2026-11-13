@@ -109,6 +109,7 @@ object SyncPayloads {
         points: List<TrackPt>,
         wallIso: String,
         monotonicMs: Long,
+        deviceStatus: DeviceStatus? = null,
     ): JsonObject = buildJsonObject {
         put("id", id)
         put("dc_user_id", dcUserId)
@@ -125,7 +126,17 @@ object SyncPayloads {
             }
         }
         put("timestamps", timestamps(wallIso, monotonicMs))
+        if (deviceStatus != null) {
+            put("device_status", buildJsonObject {
+                if (deviceStatus.batteryPct != null) put("battery_pct", deviceStatus.batteryPct)
+                put("charging", deviceStatus.charging)
+                put("power_save", deviceStatus.powerSave)
+            })
+        }
     }
+
+    /** Phone state at chunk flush; shown on the dashboard live board. */
+    data class DeviceStatus(val batteryPct: Int?, val charging: Boolean, val powerSave: Boolean)
 
     /** contracts/c1-entities/visit-photo.schema.json — watermarked JPEG inline (M1), T2. */
     fun visitPhotoEvent(

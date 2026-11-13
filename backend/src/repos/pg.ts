@@ -647,14 +647,17 @@ export class PgRepos implements Repos {
 
   async upsertDcLiveLocationIfNewer(loc: DcLiveLocation): Promise<void> {
     await this.pool.query(
-      `INSERT INTO dc_live_location (tenant_id, dc_user_id, device_id, lat, lng, accuracy_m, captured_at, server_received_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      `INSERT INTO dc_live_location (tenant_id, dc_user_id, device_id, lat, lng, accuracy_m, captured_at, server_received_at,
+                                     battery_pct, charging, power_save)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
        ON CONFLICT (tenant_id, dc_user_id) DO UPDATE SET
          device_id = excluded.device_id, lat = excluded.lat, lng = excluded.lng,
          accuracy_m = excluded.accuracy_m, captured_at = excluded.captured_at,
-         server_received_at = excluded.server_received_at
+         server_received_at = excluded.server_received_at,
+         battery_pct = excluded.battery_pct, charging = excluded.charging, power_save = excluded.power_save
        WHERE excluded.captured_at > dc_live_location.captured_at`,
-      [loc.tenant_id, loc.dc_user_id, loc.device_id, loc.lat, loc.lng, loc.accuracy_m, loc.captured_at, loc.server_received_at],
+      [loc.tenant_id, loc.dc_user_id, loc.device_id, loc.lat, loc.lng, loc.accuracy_m, loc.captured_at, loc.server_received_at,
+        loc.battery_pct, loc.charging, loc.power_save],
     );
   }
   async listLiveLocationsForDcs(tenantId: TenantId, dcIds: "ALL" | ReadonlySet<string>): Promise<Map<string, DcLiveLocation>> {
@@ -677,6 +680,9 @@ export class PgRepos implements Repos {
         accuracy_m: (r.accuracy_m as number | null) ?? null,
         captured_at: (r.captured_at as Date).toISOString(),
         server_received_at: (r.server_received_at as Date).toISOString(),
+        battery_pct: (r.battery_pct as number | null) ?? null,
+        charging: (r.charging as boolean | null) ?? null,
+        power_save: (r.power_save as boolean | null) ?? null,
       });
     }
     return out;

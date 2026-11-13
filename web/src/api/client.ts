@@ -691,6 +691,10 @@ export interface LiveLocationRow {
   lng?: number;
   accuracy_m?: number | null;
   captured_at?: string;
+  /** Phone state at the last upload (app 0.20.0+); null from older apps. */
+  battery_pct?: number | null;
+  charging?: boolean | null;
+  power_save?: boolean | null;
 }
 export interface LiveLocationsResponse {
   items: LiveLocationRow[];

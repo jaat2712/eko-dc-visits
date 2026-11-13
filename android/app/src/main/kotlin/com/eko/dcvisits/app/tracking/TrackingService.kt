@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.location.LocationManager
 import android.content.pm.ServiceInfo
+import android.os.BatteryManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
@@ -328,12 +329,21 @@ class TrackingService : Service() {
             points = pts,
             wallIso = Ist.nowIso(),
             monotonicMs = SystemClock.elapsedRealtime(),
+            deviceStatus = runCatching { deviceStatus() }.getOrNull(),
         )
         outbox.enqueue(SyncPayloads.OP_TRACK_CHUNK, payload, label = "Track ×${pts.size}")
         SyncWorker.kick(this)
     }
 
-    private fun pastCutoff(): Boolean = Ist.minutesOfDay(Instant.now()) >= CUTOFF_MINUTE
+    /** Battery %, charging and battery saver — so the dashboard can explain a quiet phone or a short KM day. */
+    private fun deviceStatus(): SyncPayloads.DeviceStatus {
+        val bm = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        val pct = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY).takeIf { it in 0..100 }
+        val powerSave = (getSystemService(Context.POWER_SERVICE) as PowerManager).isPowerSaveMode
+        return SyncPayloads.DeviceStatus(batteryPct = pct, charging = bm.isCharging, powerSave = powerSave)
+    }
+
+    private fun pastCutoff(): Boolean =Ist.minutesOfDay(Instant.now()) >= CUTOFF_MINUTE
 
     private fun stopEverything() {
         runCatching { fused.removeLocationUpdates(callback) }

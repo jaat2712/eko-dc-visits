@@ -50,3 +50,20 @@ test('attendanceChip: ON_DUTY green, ENDED neutral, NOT_STARTED amber with toolt
   assert.equal(ns.className, 'chip chip-amber');
   assert.ok(ns.title.length > 0, 'NOT_STARTED explains itself on hover');
 });
+
+import { batteryChip } from './chips.ts';
+
+test('batteryChip: null for older apps, amber for saver on or low battery, neutral otherwise', () => {
+  assert.equal(batteryChip(null, null, null), null);
+  assert.equal(batteryChip(undefined, undefined, undefined), null);
+  const ok = batteryChip(80, false, false)!;
+  assert.equal(ok.label, '80%');
+  assert.equal(ok.className, 'chip chip-neutral');
+  const saver = batteryChip(60, false, true)!;
+  assert.equal(saver.label, '60% · Saver ON');
+  assert.equal(saver.className, 'chip chip-amber');
+  assert.equal(batteryChip(12, false, false)!.className, 'chip chip-amber');
+  const charging = batteryChip(12, true, false)!;
+  assert.equal(charging.label, '12% · Charging');
+  assert.equal(charging.className, 'chip chip-neutral', 'low but charging is not a worry');
+});

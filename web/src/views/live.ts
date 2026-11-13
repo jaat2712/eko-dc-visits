@@ -20,7 +20,7 @@ import {
   type RouteHistoryPoint,
 } from '../api/client.ts';
 import { formatIstDateTime, todayIstDate } from '../lib/format.ts';
-import { liveLocationChip } from '../lib/chips.ts';
+import { batteryChip, liveLocationChip } from '../lib/chips.ts';
 
 const POLL_MS = 10_000;
 // The app uploads its track every ~3 min (TrackingService FLUSH_EVERY_TICKS), so
@@ -58,7 +58,7 @@ export function renderLiveView(root: HTMLElement): () => void {
           </p>
           <table class="visits">
             <thead>
-              <tr><th>DC</th><th>Status</th><th>Last update (IST)</th><th>Accuracy</th></tr>
+              <tr><th>DC</th><th>Status</th><th>Last update (IST)</th><th>Accuracy</th><th>Battery</th></tr>
             </thead>
             <tbody id="live-body"></tbody>
           </table>
@@ -128,11 +128,13 @@ export function renderLiveView(root: HTMLElement): () => void {
           const tr = document.createElement('tr');
           if (r.dc_user_id === selectedDcId) tr.className = 'row-selected';
           const chip = liveLocationChip(r.state);
+          const battery = batteryChip(r.battery_pct, r.charging, r.power_save);
           tr.append(
             td(r.name),
             tdChip(chip.label, chip.className, chip.title),
             td(formatIstDateTime(r.captured_at)),
             td(r.accuracy_m === undefined || r.accuracy_m === null ? '—' : `±${Math.round(r.accuracy_m)} m`),
+            battery ? tdChip(battery.label, battery.className, battery.title) : td('—'),
           );
           tr.addEventListener('click', () => selectDc(r.dc_user_id));
           tr.style.cursor = 'pointer';
@@ -154,7 +156,8 @@ export function renderLiveView(root: HTMLElement): () => void {
         })
           .bindPopup(
             `<strong>${escapeHtml(r.name)}</strong><br>${escapeHtml(liveLocationChip(r.state).label)}` +
-              (r.captured_at ? `<br>${escapeHtml(formatIstDateTime(r.captured_at))} IST` : ''),
+              (r.captured_at ? `<br>${escapeHtml(formatIstDateTime(r.captured_at))} IST` : '') +
+              (r.battery_pct != null ? `<br>Battery ${escapeHtml(batteryChip(r.battery_pct, r.charging, r.power_save)!.label)}` : ''),
           )
           .on('click', () => selectDc(r.dc_user_id))
           .addTo(dcMarkers);

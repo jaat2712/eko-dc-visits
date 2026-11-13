@@ -1233,6 +1233,9 @@ export function buildServer(deps: ServerDeps): FastifyInstance {
             lng: loc.lng,
             accuracy_m: loc.accuracy_m,
             captured_at: loc.captured_at,
+            battery_pct: loc.battery_pct,
+            charging: loc.charging,
+            power_save: loc.power_save,
           };
         });
         return reply.code(200).send({ items });
