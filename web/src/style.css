@@ -180,6 +180,36 @@ button:focus-visible {
   background: var(--eko-orange-deep);
   color: #fff;
 }
+.app-switch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-right: 0.75rem;
+  border: 1px solid var(--eko-line);
+  border-radius: 999px;
+}
+.app-switch-btn {
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--eko-slate);
+}
+.app-switch-dc {
+  background: var(--eko-ink);
+  color: #fff;
+}
+.app-switch-sbi {
+  background: #00668f; /* SBI Visit App report's own header blue */
+  color: #fff;
+}
+.sbi-frame {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 62px);
+  border: 0;
+}
 .tabs-who {
   margin-left: auto;
   color: var(--eko-slate);

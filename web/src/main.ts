@@ -34,7 +34,15 @@ type Route =
   | '#/approvals'
   | '#/all-csps'
   | '#/live'
-  | '#/complaints';
+  | '#/complaints'
+  | '#/sbi';
+
+/** The SBI Visit App report (separate project, same host) shown inside the shell, untouched. */
+const SBI_REPORT_URL = '/gps-tracking/';
+
+function hasSbiSwitch(role: Role): boolean {
+  return role === 'CORPORATE_ADMIN' || role === 'NATIONAL_HEAD';
+}
 
 const app = document.querySelector<HTMLElement>('#app')!;
 let teardown: (() => void) | null = null;
@@ -98,14 +106,24 @@ function route(): void {
   const role = session.user.role;
   const tabs = tabsFor(role);
   const requested = (location.hash || defaultRoute(role)) as Route;
-  let active = tabs.some((t) => t.hash === requested) ? requested : defaultRoute(role);
+  const sbiOk = hasSbiSwitch(role);
+  let active = tabs.some((t) => t.hash === requested) || (sbiOk && requested === '#/sbi') ? requested : defaultRoute(role);
   if (isGated(role, active)) active = '#/attendance'; // enforced ordering, not just visual
+  const sbiMode = active === '#/sbi';
 
   // Shell: tab nav + logout, then the active view below.
   app.innerHTML = `
     <nav class="tabs">
       <div class="nav-logo-wrap"><img class="nav-logo" src="${ekoLogo}" alt="Eko" /><span class="nav-logo-sub">Kiosk</span></div>
-      ${tabs
+      ${
+        sbiOk
+          ? `<div class="app-switch" role="group" aria-label="Data source">
+              <a href="${defaultRoute(role)}" class="app-switch-btn${sbiMode ? '' : ' app-switch-dc'}"${sbiMode ? '' : ' aria-current="page"'}>DC Visit App</a>
+              <a href="#/sbi" class="app-switch-btn${sbiMode ? ' app-switch-sbi' : ''}"${sbiMode ? ' aria-current="page"' : ''}>SBI Visit App</a>
+            </div>`
+          : ''
+      }
+      ${(sbiMode ? [] : tabs)
         .map((t) => {
           const gated = isGated(role, t.hash);
           const cls = `tab${t.hash === active ? ' tab-active' : ''}${gated ? ' tab-disabled' : ''}`;
@@ -124,7 +142,9 @@ function route(): void {
   });
 
   const view = app.querySelector<HTMLElement>('#view')!;
-  if (active === '#/attendance') {
+  if (sbiMode) {
+    view.innerHTML = `<iframe class="sbi-frame" src="${SBI_REPORT_URL}" title="SBI Visit App report"></iframe>`;
+  } else if (active === '#/attendance') {
     teardown = renderAttendanceView(view);
   } else if (active === '#/csps') {
     teardown = renderWorkbenchView(view);
