@@ -112,28 +112,35 @@ function route(): void {
   const sbiMode = active === '#/sbi';
 
   // Shell: tab nav + logout, then the active view below.
+  // Row 1: logo, DC/SBI switch, user. Row 2: this app's tabs (not in SBI mode, which has its own).
   app.innerHTML = `
-    <nav class="tabs">
-      <div class="nav-logo-wrap"><img class="nav-logo" src="${ekoLogo}" alt="Eko" /><span class="nav-logo-sub">Kiosk</span></div>
+    <div class="shell-head">
+      <header class="topnav">
+        <div class="nav-logo-wrap"><img class="nav-logo" src="${ekoLogo}" alt="Eko" /><span class="nav-logo-sub">Kiosk</span></div>
+        ${
+          sbiOk
+            ? `<div class="app-switch" role="group" aria-label="Data source">
+                <a href="${defaultRoute(role)}" class="app-switch-btn${sbiMode ? '' : ' app-switch-dc'}"${sbiMode ? '' : ' aria-current="page"'}>DC Visit App</a>
+                <a href="#/sbi" class="app-switch-btn${sbiMode ? ' app-switch-sbi' : ''}"${sbiMode ? ' aria-current="page"' : ''}>SBI Visit App</a>
+              </div>`
+            : ''
+        }
+        <span class="tabs-who">${escapeHtml(`${session.user.name}`)}</span>
+        <button id="nav-logout" type="button" class="tab-logout">Log out</button>
+      </header>
       ${
-        sbiOk
-          ? `<div class="app-switch" role="group" aria-label="Data source">
-              <a href="${defaultRoute(role)}" class="app-switch-btn${sbiMode ? '' : ' app-switch-dc'}"${sbiMode ? '' : ' aria-current="page"'}>DC Visit App</a>
-              <a href="#/sbi" class="app-switch-btn${sbiMode ? ' app-switch-sbi' : ''}"${sbiMode ? ' aria-current="page"' : ''}>SBI Visit App</a>
-            </div>`
-          : ''
+        sbiMode
+          ? ''
+          : `<nav class="tabs">${tabs
+              .map((t) => {
+                const gated = isGated(role, t.hash);
+                const cls = `tab${t.hash === active ? ' tab-active' : ''}${gated ? ' tab-disabled' : ''}`;
+                const title = gated ? ' title="Mark attendance first"' : '';
+                return `<a href="${gated ? '#/attendance' : t.hash}" class="${cls}"${title}>${t.label}</a>`;
+              })
+              .join('')}</nav>`
       }
-      ${(sbiMode ? [] : tabs)
-        .map((t) => {
-          const gated = isGated(role, t.hash);
-          const cls = `tab${t.hash === active ? ' tab-active' : ''}${gated ? ' tab-disabled' : ''}`;
-          const title = gated ? ' title="Mark attendance first"' : '';
-          return `<a href="${gated ? '#/attendance' : t.hash}" class="${cls}"${title}>${t.label}</a>`;
-        })
-        .join('')}
-      <span class="tabs-who">${escapeHtml(`${session.user.name}`)}</span>
-      <button id="nav-logout" type="button" class="tab-logout">Log out</button>
-    </nav>
+    </div>
     <div id="view"></div>
   `;
   app.querySelector<HTMLButtonElement>('#nav-logout')!.addEventListener('click', () => {
@@ -144,6 +151,8 @@ function route(): void {
   const view = app.querySelector<HTMLElement>('#view')!;
   if (sbiMode) {
     view.innerHTML = `<iframe class="sbi-frame" src="${SBI_REPORT_URL}" title="SBI Visit App report"></iframe>`;
+    const head = app.querySelector<HTMLElement>('.shell-head')!;
+    view.querySelector<HTMLIFrameElement>('.sbi-frame')!.style.height = `calc(100vh - ${head.offsetHeight}px)`;
   } else if (active === '#/attendance') {
     teardown = renderAttendanceView(view);
   } else if (active === '#/csps') {

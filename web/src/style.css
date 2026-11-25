@@ -24,7 +24,7 @@
   box-sizing: border-box;
 }
 body {
-  font-family: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Nunito Sans", "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
   margin: 0;
   color: var(--eko-ink);
   background: var(--eko-paper);
@@ -131,16 +131,27 @@ button:focus-visible {
 }
 
 /* ---- App shell ------------------------------------------------------- */
+.shell-head {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--eko-card);
+}
+.topnav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  padding: 0.7rem 1.5rem;
+  border-bottom: 1px solid var(--eko-line);
+}
 .tabs {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.6rem 1.5rem;
+  padding: 0.55rem 1.5rem;
   border-bottom: 1px solid var(--eko-line);
-  background: var(--eko-card);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  overflow-x: auto;
 }
 .nav-logo-wrap {
   display: flex;
@@ -184,21 +195,27 @@ button:focus-visible {
   display: inline-flex;
   gap: 4px;
   padding: 4px;
-  margin-right: 0.75rem;
+  background: var(--eko-card);
   border: 1px solid var(--eko-line);
   border-radius: 999px;
 }
 .app-switch-btn {
-  padding: 0.35rem 0.9rem;
+  padding: 0.5rem 1rem;
   border-radius: 999px;
   text-decoration: none;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--eko-slate);
 }
+.app-switch-btn:hover {
+  color: var(--eko-ink);
+}
 .app-switch-dc {
-  background: var(--eko-ink);
-  color: #fff;
+  background: var(--eko-orange);
+  color: var(--eko-ink);
+}
+.app-switch-dc:hover {
+  color: var(--eko-ink);
 }
 .app-switch-sbi {
   background: #00668f; /* SBI Visit App report's own header blue */
@@ -207,8 +224,46 @@ button:focus-visible {
 .sbi-frame {
   display: block;
   width: 100%;
-  height: calc(100vh - 62px);
+  height: calc(100vh - 70px);
   border: 0;
+}
+.source-line {
+  font-size: 0.8rem;
+  color: var(--eko-slate);
+  margin: 0.4rem 0 0;
+}
+.source-line b {
+  color: var(--eko-ink);
+}
+/* Overview stat cards: small caps label, big number, one line of detail */
+.ov-cards {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+.ov-card {
+  background: var(--eko-card);
+  border: 1px solid var(--eko-line);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  min-width: 0;
+}
+.ov-k {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--eko-slate);
+}
+.ov-v {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--eko-orange-deep);
+  margin: 0.2rem 0;
+  font-variant-numeric: tabular-nums;
+}
+.ov-s {
+  font-size: 0.82rem;
+  color: var(--eko-slate);
+  margin: 0;
 }
 .tabs-who {
   margin-left: auto;

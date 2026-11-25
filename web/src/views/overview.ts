@@ -13,6 +13,7 @@ const POLL_MS = 10_000;
 export function renderOverviewView(root: HTMLElement): () => void {
   root.innerHTML = `
     <main class="day">
+      <p class="source-line">Source: <b>DC Visit App</b> (live GPS check-in from the DC's phone)</p>
       <header class="topbar">
         <h1>Overview</h1>
         <label>Date (IST) <input id="ov-date" type="date" /></label>
@@ -22,7 +23,7 @@ export function renderOverviewView(root: HTMLElement): () => void {
         <span id="ov-error-msg"></span>
         <button id="ov-retry" type="button">Retry</button>
       </div>
-      <div id="ov-stats" class="cards"></div>
+      <div id="ov-stats" class="cards ov-cards"></div>
 
       <h2 class="section-title">DCs</h2>
       <table class="visits">
@@ -50,20 +51,17 @@ export function renderOverviewView(root: HTMLElement): () => void {
 
   function stat(value: string, label: string, sub: string): HTMLElement {
     const card = document.createElement('article');
-    card.className = 'score-card';
-    const points = document.createElement('span');
-    points.className = 'score-points';
-    points.textContent = value;
-    const name = document.createElement('span');
-    name.className = 'score-points-label';
+    card.className = 'ov-card';
+    const name = document.createElement('div');
+    name.className = 'ov-k';
     name.textContent = label;
+    const points = document.createElement('div');
+    points.className = 'ov-v';
+    points.textContent = value;
     const breakdown = document.createElement('p');
-    breakdown.className = 'score-breakdown';
+    breakdown.className = 'ov-s';
     breakdown.textContent = sub;
-    const row = document.createElement('div');
-    row.className = 'score-points-row';
-    row.append(points, name);
-    card.append(row, breakdown);
+    card.append(name, points, breakdown);
     return card;
   }
 
