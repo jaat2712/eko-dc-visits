@@ -54,11 +54,11 @@ function tabsFor(role: Role): Array<{ hash: Route; label: string }> {
     case 'HR_ADMIN':
       return [attendance]; // C6: attendance-only visibility
     case 'CORPORATE_ADMIN':
-      return [overview, visits, live, attendance, allCsps, csps, approvals, complaints, scorecard];
+      return [overview, visits, live, attendance, approvals, complaints, scorecard];
     case 'NATIONAL_HEAD':
-      return [overview, visits, live, attendance, allCsps, complaints, scorecard];
+      return [overview, visits, live, attendance, complaints, scorecard];
     case 'CIRCLE_HEAD':
-      return [attendance, visits, live, allCsps, csps, approvals, complaints, scorecard];
+      return [attendance, visits, live, approvals, complaints, scorecard];
     default:
       // Spec (DC): Attendance FIRST; everything else locked until day start.
       return [attendance, visits, myCsps, scorecard];
@@ -104,7 +104,7 @@ function route(): void {
   // Shell: tab nav + logout, then the active view below.
   app.innerHTML = `
     <nav class="tabs">
-      <img class="nav-logo" src="${ekoLogo}" alt="Eko" />
+      <div class="nav-logo-wrap"><img class="nav-logo" src="${ekoLogo}" alt="Eko" /><span class="nav-logo-sub">Kiosk</span></div>
       ${tabs
         .map((t) => {
           const gated = isGated(role, t.hash);

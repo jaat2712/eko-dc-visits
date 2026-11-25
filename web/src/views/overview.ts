@@ -24,12 +24,6 @@ export function renderOverviewView(root: HTMLElement): () => void {
       </div>
       <div id="ov-stats" class="cards"></div>
 
-      <h2 class="section-title">Circles</h2>
-      <table class="visits">
-        <thead><tr><th>Circle</th><th>Circle Head</th><th>DCs</th><th>On duty</th><th>CSPs</th><th>Visits today</th><th>Flagged</th></tr></thead>
-        <tbody id="ov-circles"></tbody>
-      </table>
-
       <h2 class="section-title">DCs</h2>
       <table class="visits">
         <thead><tr><th>DC</th><th>Attendance</th><th>CSPs assigned</th><th>Visits today</th><th title="Provisional — GPS straight-line estimate, not for reimbursement">KM today</th></tr></thead>
@@ -45,7 +39,6 @@ export function renderOverviewView(root: HTMLElement): () => void {
   const errorBox = root.querySelector<HTMLElement>('#ov-error')!;
   const errorMsg = root.querySelector<HTMLElement>('#ov-error-msg')!;
   const statsEl = root.querySelector<HTMLElement>('#ov-stats')!;
-  const circlesEl = root.querySelector<HTMLTableSectionElement>('#ov-circles')!;
   const dcsEl = root.querySelector<HTMLTableSectionElement>('#ov-dcs')!;
   const banksEl = root.querySelector<HTMLElement>('#ov-banks')!;
 
@@ -80,24 +73,6 @@ export function renderOverviewView(root: HTMLElement): () => void {
     statsEl.replaceChildren(
       stat(`${d.attendance.on_duty}/${d.attendance.total_dcs}`, 'DCs on duty', `${d.attendance.ended} ended · ${d.attendance.not_started} not started`),
       stat(String(d.visits.total), 'visits today', `${d.visits.geo_verified} geo-verified · ${d.visits.flagged} flagged · ${d.visits.unplanned} unplanned`),
-      stat(`${d.csps.assigned}/${d.csps.total}`, 'CSPs assigned', `${d.csps.unassigned} unassigned · ${d.csps.coordinates_unverified} coords unverified`),
-      stat(String(d.visits.late_sync), 'late-sync visits', 'evidence that arrived on a later day'),
-    );
-
-    circlesEl.replaceChildren(
-      ...d.circles.map((c) => {
-        const tr = document.createElement('tr');
-        tr.append(
-          td(c.circle_name),
-          td(c.circle_head ?? '— no head assigned —'),
-          td(String(c.dc_count)),
-          td(String(c.on_duty)),
-          td(String(c.csp_count)),
-          td(String(c.visits_today)),
-          td(String(c.flagged_today)),
-        );
-        return tr;
-      }),
     );
 
     dcsEl.replaceChildren(
@@ -128,7 +103,6 @@ export function renderOverviewView(root: HTMLElement): () => void {
       if (err instanceof DOMException && err.name === 'AbortError') return;
       statusEl.textContent = '';
       statsEl.replaceChildren();
-      circlesEl.replaceChildren();
       dcsEl.replaceChildren();
       banksEl.textContent = '';
       errorBox.hidden = false;
