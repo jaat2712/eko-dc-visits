@@ -8,7 +8,8 @@
  *   HR_ADMIN                                           → Attendance only
  */
 import './style.css';
-import { clearSession, getSession, setUnauthorizedHandler, type Role } from './api/client.ts';
+import { clearSession, getOverview, getSession, setUnauthorizedHandler, type Role } from './api/client.ts';
+import { todayIstDate } from './lib/format.ts';
 import { renderLogin } from './views/login.ts';
 import { renderDayView } from './views/day.ts';
 import { renderLiveView } from './views/live.ts';
@@ -150,9 +151,18 @@ function route(): void {
 
   const view = app.querySelector<HTMLElement>('#view')!;
   if (sbiMode) {
-    view.innerHTML = `<iframe class="sbi-frame" src="${SBI_REPORT_URL}" title="SBI Visit App report"></iframe>`;
+    view.innerHTML = `<iframe class="sbi-frame" title="SBI Visit App report"></iframe>`;
     const head = app.querySelector<HTMLElement>('.shell-head')!;
-    view.querySelector<HTMLIFrameElement>('.sbi-frame')!.style.height = `calc(100vh - ${head.offsetHeight}px)`;
+    const frame = view.querySelector<HTMLIFrameElement>('.sbi-frame')!;
+    frame.style.height = `calc(100vh - ${head.offsetHeight}px)`;
+    // Single sign-on: the report checks this login with our API instead of asking its password.
+    // One authed call first so an expired access token is refreshed before it is handed over.
+    void getOverview(todayIstDate())
+      .catch(() => undefined)
+      .then(() => {
+        const token = getSession()?.access_token;
+        frame.src = token ? `${SBI_REPORT_URL}?sso=${encodeURIComponent(token)}` : SBI_REPORT_URL;
+      });
   } else if (active === '#/attendance') {
     teardown = renderAttendanceView(view);
   } else if (active === '#/csps') {
